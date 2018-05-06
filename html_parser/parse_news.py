@@ -39,14 +39,14 @@ def my_timer(func):
     def func_wrapper(*func_args, **func_kwargs):
         timer = time()
         temp = func(*func_args, **func_kwargs)
-        if hasattr(func, 'time'):
-            func.time += time() - timer
+        if hasattr(func_wrapper, 'time'):
+            func_wrapper.time += time() - timer
         else:
-            func.time = time() - timer
-        if hasattr(func, 'calls'):
-            func.calls += 1
+            func_wrapper.time = time() - timer
+        if hasattr(func_wrapper, 'calls'):
+            func_wrapper.calls += 1
         else:
-            func.calls = 1
+            func_wrapper.calls = 1
         return temp
     return func_wrapper
 
@@ -94,7 +94,7 @@ def get_news_model_instance(tag, section_url):
             'tags': tags}
 
 
-def update_all_news(section_url):
+def update_all_news(section_url, iter_size=ITER_SIZE):
     section_id = get_id_from_section_url(section_url)
     start = 0
     instances = list()
@@ -102,14 +102,14 @@ def update_all_news(section_url):
     timer2 = 0
     while True:
         json_response = get_json_response(section_id, start)
-        start += ITER_SIZE
+        start += iter_size
         tags = get_news_tags(json_response)
         timer3 = time()
         instances += list(map(lambda tag: get_news_model_instance(tag, section_url), tags))
-        print('for instances', (time() - timer3)/ITER_SIZE)
+        print('for instances', (time() - timer3)/iter_size)
         print(get_news_soup.calls)
         print('requests', get_news_soup.time/get_news_soup.calls)
-        if json_response['count'] != ITER_SIZE:
+        if json_response['count'] != iter_size:
             break
 
     news_db.connect(reuse_if_open=True)
