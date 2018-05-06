@@ -6,11 +6,9 @@ import json
 from unicodedata import normalize
 from database.models import *
 from database.controller import add_news_dict
-from functools import wraps
-from time import time
 
 
-ITER_SIZE = 100
+ITER_SIZE = 200
 
 
 def get_id_from_section_url(url):
@@ -34,24 +32,6 @@ def get_date_from_tag(tag):
     return str_to_datetime(date_str)
 
 
-def my_timer(func):
-    @wraps(func)
-    def func_wrapper(*func_args, **func_kwargs):
-        timer = time()
-        temp = func(*func_args, **func_kwargs)
-        if hasattr(func_wrapper, 'time'):
-            func_wrapper.time += time() - timer
-        else:
-            func_wrapper.time = time() - timer
-        if hasattr(func_wrapper, 'calls'):
-            func_wrapper.calls += 1
-        else:
-            func_wrapper.calls = 1
-        return temp
-    return func_wrapper
-
-
-@my_timer
 def get_news_soup(url):
     response = requests.get(url)
     return BeautifulSoup(response.text, 'html.parser')
@@ -81,7 +61,7 @@ def get_news_model_instance(tag, section_url):
     soup = get_news_soup(url)
     text = get_news_content(soup)
 
-    ## TO CONTROLLER
+    # TO CONTROLLER
     news_db.connect(reuse_if_open=True)
     tags = [Tag.get_or_create(**x)[0] for x in get_related_tags(soup)]
     news_db.close()
@@ -98,17 +78,11 @@ def update_all_news(section_url, iter_size=ITER_SIZE):
     section_id = get_id_from_section_url(section_url)
     start = 0
     instances = list()
-    timer = time()
-    timer2 = 0
     while True:
         json_response = get_json_response(section_id, start)
         start += iter_size
         tags = get_news_tags(json_response)
-        timer3 = time()
         instances += list(map(lambda tag: get_news_model_instance(tag, section_url), tags))
-        print('for instances', (time() - timer3)/iter_size)
-        print(get_news_soup.calls)
-        print('requests', get_news_soup.time/get_news_soup.calls)
         if json_response['count'] != iter_size:
             break
 
