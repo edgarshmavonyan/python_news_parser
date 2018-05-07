@@ -4,12 +4,12 @@ import json
 from unicodedata import normalize
 from database.controller import add_section_dicts
 
-ITER_SIZE = 100
-UNICODE_NORMAL_FORM = 'NFC'
-# THEME_CSS_CLASS = 'item item_story js-story-item'
+
+RELEVANT_SECTION_NUMBER = 100
+UNICODE_NORMAL_FORM = 'NFKC'
 
 
-def get_json_response(offset=0, limit=ITER_SIZE):
+def get_sections_json(offset=0, limit=RELEVANT_SECTION_NUMBER):
     response = requests.get('https://www.rbc.ru/story/filter/ajax?offset={}&limit={}'.format(offset, limit))
     return json.loads(response.text)
 
@@ -32,30 +32,20 @@ def get_description_from_tag(tag):
     return normalize(UNICODE_NORMAL_FORM, tag.find('span', class_='item__text').get_text().strip())
 
 
-def get_dict_model_instance(tag):
+def get_section_model_instance(tag):
     return {'name': get_name_from_tag(tag),
             'url': get_url_from_tag(tag),
             'description': get_description_from_tag(tag)
             }
 
 
-from itertools import chain
-from time import time
+def update_relevant_sections(number=RELEVANT_SECTION_NUMBER):
 
+    if number > RELEVANT_SECTION_NUMBER:
+        raise Exception('Too many sections to update (note: maximum is {})'.
+                        format(RELEVANT_SECTION_NUMBER))
 
-def get_all_and_store(iter_size=ITER_SIZE):
-    start = 0
-    instances = list()
-    timer = time()
-    while True:
-        json_response = get_json_response(start, iter_size)
-        start += iter_size
-        # instances = chain(instances, map(get_dict_model_instance, get_section_tags(json_response)))
-        instances += list(map(get_dict_model_instance, get_section_tags(json_response)))
-        if json_response['count'] != iter_size:
-            break
-    print(time() - timer)
-    timer = time()
+    json_response = get_sections_json(0, number)
+    instances = list(map(get_section_model_instance, get_section_tags(json_response)))
     add_section_dicts(instances)
-    print(time() - timer)
-
+    return instances

@@ -4,3 +4,4 @@ html_parser/test.py
 untitled.py
 venv/
 __pycache__/
+news_db.db

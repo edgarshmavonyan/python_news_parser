@@ -5,17 +5,17 @@ from .parse_datetime import str_to_datetime
 import json
 from unicodedata import normalize
 from database.models import *
-from database.controller import add_news_dict
+from database.controller import add_news_dicts, get_or_create_tags
 
 
-ITER_SIZE = 200
+RELEVANT_NEWS_NUMBER = 100
 
 
 def get_id_from_section_url(url):
     return url.split('/')[-1]
 
 
-def get_json_response(section_id, offset=0, limit=ITER_SIZE):
+def get_news_json(section_id, offset=0, limit=RELEVANT_NEWS_NUMBER):
     response = requests.get(
         'https://www.rbc.ru/filter/ajax?story={}&offset={}&limit={}'.format(section_id, offset, limit))
     return json.loads(response.text)
@@ -43,7 +43,7 @@ def get_news_content(soup):
         script.decompose()
 
     paragraphs = article.find_all('p')
-    return normalize(UNICODE_NORMAL_FORM, '\n'.join(filter(None, map(lambda x: x.get_text().strip(), paragraphs))))
+    return normalize(UNICODE_NORMAL_FORM, '\n'.join(filter(None, map(lambda x: x.get_text().strip(),paragraphs))))
 
 
 def get_tag_info(html_tag):
@@ -60,11 +60,7 @@ def get_news_model_instance(tag, section_url):
     url = get_url_from_tag(tag)
     soup = get_news_soup(url)
     text = get_news_content(soup)
-
-    # TO CONTROLLER
-    news_db.connect(reuse_if_open=True)
-    tags = [Tag.get_or_create(**x)[0] for x in get_related_tags(soup)]
-    news_db.close()
+    tags = get_or_create_tags(get_related_tags(soup))
 
     return {'title': title,
             'url': url,
@@ -74,22 +70,16 @@ def get_news_model_instance(tag, section_url):
             'tags': tags}
 
 
-def update_all_news(section_url, iter_size=ITER_SIZE):
+def update_relevant_section_news(section_url, number=RELEVANT_NEWS_NUMBER):
+    if number > RELEVANT_NEWS_NUMBER:
+        raise Exception('Too many news to update (note: maximum is {})'
+                        .format(RELEVANT_NEWS_NUMBER))
+
     section_id = get_id_from_section_url(section_url)
-    start = 0
-    instances = list()
-    while True:
-        json_response = get_json_response(section_id, start)
-        start += iter_size
-        tags = get_news_tags(json_response)
-        instances += list(map(lambda tag: get_news_model_instance(tag, section_url), tags))
-        if json_response['count'] != iter_size:
-            break
 
-    news_db.connect(reuse_if_open=True)
+    json_response = get_news_json(section_id, 0, number)
+    tags = get_news_tags(json_response)
 
-    with news_db.atomic():
-        for instance in instances:
-            add_news_dict(instance)
-
-    news_db.close()
+    instances = list(map(lambda tag: get_news_model_instance(tag, section_url), tags))
+    add_news_dicts(instances)
+    print('added')
