@@ -12,7 +12,8 @@ UNICODE_NORMAL_FORM = 'NFKC'
 
 @reconnect_decorator
 def get_sections_json(offset=0, limit=RELEVANT_SECTION_NUMBER):
-    response = requests.get('https://www.rbc.ru/story/filter/ajax?offset={}&limit={}'.format(offset, limit))
+    response = requests.get('https://www.rbc.ru/story/filter/ajax?offset={}&limit={}'.format(offset, limit),
+                            allow_redirects=False)
     return json.loads(response.text)
 
 

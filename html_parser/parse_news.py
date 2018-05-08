@@ -19,7 +19,8 @@ def get_id_from_section_url(url):
 @reconnect_decorator
 def get_news_json(section_id, offset=0, limit=RELEVANT_NEWS_NUMBER):
     response = requests.get(
-        'https://www.rbc.ru/filter/ajax?story={}&offset={}&limit={}'.format(section_id, offset, limit))
+        'https://www.rbc.ru/filter/ajax?story={}&offset={}&limit={}'.format(section_id, offset, limit),
+        allow_redirects=False)
     return json.loads(response.text)
 
 
@@ -36,7 +37,7 @@ def get_date_from_tag(tag):
 
 @reconnect_decorator
 def get_news_soup(url):
-    response = requests.get(url)
+    response = requests.get(url, allow_redirects=False)
     return BeautifulSoup(response.text, 'html.parser')
 
 
