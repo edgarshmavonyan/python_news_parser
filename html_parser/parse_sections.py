@@ -3,12 +3,14 @@ from bs4 import BeautifulSoup
 import json
 from unicodedata import normalize
 from database.controller import add_section_dicts
+from .reconnect_decorator import reconnect_decorator
 
 
 RELEVANT_SECTION_NUMBER = 100
 UNICODE_NORMAL_FORM = 'NFKC'
 
 
+@reconnect_decorator
 def get_sections_json(offset=0, limit=RELEVANT_SECTION_NUMBER):
     response = requests.get('https://www.rbc.ru/story/filter/ajax?offset={}&limit={}'.format(offset, limit))
     return json.loads(response.text)

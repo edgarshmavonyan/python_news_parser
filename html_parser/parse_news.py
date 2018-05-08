@@ -6,6 +6,7 @@ import json
 from unicodedata import normalize
 from database.models import *
 from database.controller import add_news_dicts, get_or_create_tags
+from .reconnect_decorator import reconnect_decorator
 
 
 RELEVANT_NEWS_NUMBER = 100
@@ -15,6 +16,7 @@ def get_id_from_section_url(url):
     return url.split('/')[-1]
 
 
+@reconnect_decorator
 def get_news_json(section_id, offset=0, limit=RELEVANT_NEWS_NUMBER):
     response = requests.get(
         'https://www.rbc.ru/filter/ajax?story={}&offset={}&limit={}'.format(section_id, offset, limit))
@@ -32,6 +34,7 @@ def get_date_from_tag(tag):
     return str_to_datetime(date_str)
 
 
+@reconnect_decorator
 def get_news_soup(url):
     response = requests.get(url)
     return BeautifulSoup(response.text, 'html.parser')
@@ -39,6 +42,8 @@ def get_news_soup(url):
 
 def get_news_content(soup):
     article = soup.find('div', class_='article__text')
+    if article is None:
+        return ''
     for script in article(['script', 'style', 'blockquote', 'div']):
         script.decompose()
 
