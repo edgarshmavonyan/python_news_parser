@@ -6,7 +6,7 @@ import json
 from unicodedata import normalize
 from database.models import *
 from database.controller import add_news_dicts, get_or_create_tags
-from .reconnect_decorator import reconnect_decorator
+from .decorators import reconnect_decorator
 
 
 RELEVANT_NEWS_NUMBER = 100
@@ -44,7 +44,7 @@ def get_news_soup(url):
 def get_news_content(soup):
     article = soup.find('div', class_='article__text')
     if article is None:
-        return ''
+        return None
     for script in article(['script', 'style', 'blockquote', 'div']):
         script.decompose()
 
@@ -66,6 +66,8 @@ def get_news_model_instance(tag, section_url):
     url = get_url_from_tag(tag)
     soup = get_news_soup(url)
     text = get_news_content(soup)
+    if text is None:
+        return None
     tags = get_or_create_tags(get_related_tags(soup))
 
     return {'title': title,
@@ -86,6 +88,6 @@ def update_relevant_section_news(section_url, number=RELEVANT_NEWS_NUMBER):
     json_response = get_news_json(section_id, 0, number)
     tags = get_news_tags(json_response)
 
-    instances = list(map(lambda tag: get_news_model_instance(tag, section_url), tags))
+    instances = list(filter(None, map(lambda tag: get_news_model_instance(tag, section_url), tags)))
     add_news_dicts(instances)
     print('added')

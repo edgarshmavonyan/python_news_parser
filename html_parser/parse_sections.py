@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import json
 from unicodedata import normalize
 from database.controller import add_section_dicts
-from .reconnect_decorator import reconnect_decorator
+from .decorators import reconnect_decorator
 
 
 RELEVANT_SECTION_NUMBER = 100
