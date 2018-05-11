@@ -29,3 +29,7 @@ def main():
         if wait_input == 'stop':
             updater.stop()
             return 'Stopped'
+
+
+if __name__ == '__main__':
+    main()
