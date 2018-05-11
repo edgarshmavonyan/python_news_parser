@@ -72,7 +72,7 @@ class NewTopicsHandler(Handler):
 class DocHandler(Handler):
     @classmethod
     def handle(cls, bot, update, args):
-        doc_title = args[0]
+        doc_title = ' '.join(args)
         try:
             article = Article.get(title=doc_title)
             bot.send_message(chat_id=update.message.chat_id,
