@@ -15,6 +15,7 @@ class Section(NewsModel):
     name = FixedCharField()
     url = CharField(max_length=STANDARD_MAX_URL_LENGTH)
     description = TextField()
+    last_update = DateTimeField()
 
     def __repr__(self):
         return self.name
