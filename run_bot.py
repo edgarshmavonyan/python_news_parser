@@ -23,3 +23,9 @@ def main():
     dispatcher.add_handler(doc_handler)
 
     updater.start_polling()
+
+    while True:
+        wait_input = input()
+        if wait_input == 'stop':
+            updater.stop()
+            return 'Stopped'
