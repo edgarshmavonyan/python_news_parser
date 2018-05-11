@@ -74,7 +74,7 @@ class DocHandler(Handler):
     def handle(cls, bot, update, args):
         doc_title = args[0]
         try:
-            article = Article.select(Article.text, Article.title).get(title=doc_title)
+            article = Article.get(title=doc_title)
             bot.send_message(chat_id=update.message.chat_id,
                              text=article.text)
 
