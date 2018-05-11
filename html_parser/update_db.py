@@ -9,3 +9,4 @@ def update_db():
     for section in sections:
         print(section['name'])
         update_relevant_section_news(section['url'])
+    news_db.close()
