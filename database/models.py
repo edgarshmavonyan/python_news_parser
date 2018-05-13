@@ -1,6 +1,5 @@
 from peewee import *
 import datetime
-from playhouse.sqlite_ext import JSONField
 
 
 news_db = SqliteDatabase('news_db.db')

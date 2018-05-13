@@ -3,7 +3,7 @@ from .models import *
 
 def init_db():
     news_db.connect()
-    news_db.create_tables([Section, Tag, Article, Article.tags.get_through_model()])
+    news_db.create_tables([Section, Tag, Article, Article.tags.get_through_model()], safe=True)
     news_db.close()
 
 

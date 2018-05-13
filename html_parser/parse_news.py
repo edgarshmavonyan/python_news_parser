@@ -100,7 +100,6 @@ def get_news_model_instance(tag, section_url):
     filtered_text = filter_text(text)
     words_distribution = get_words_distribution(filtered_text)
     length_distribution = get_length_distribution(filtered_text)
-    print(length_distribution)
     tags = get_or_create_tags(get_related_tags(soup))
 
     return {'title': title,
