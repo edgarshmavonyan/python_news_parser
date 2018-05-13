@@ -1,17 +1,16 @@
-import requests
 from bs4 import BeautifulSoup
-import json
 from unicodedata import normalize
 from database.controller import add_section_dicts
-from .decorators import reconnect_decorator
+from .reconnect import reconnect_decorator
+from .common_getters import get_name_from_tag, get_url_from_tag, UNICODE_NORMAL_FORM
+import json
+import requests
 
-
-RELEVANT_SECTION_NUMBER = 100
-UNICODE_NORMAL_FORM = 'NFKC'
+ALL_SECTION_NUMBER = 100
 
 
 @reconnect_decorator
-def get_sections_json(offset=0, limit=RELEVANT_SECTION_NUMBER):
+def get_sections_json(offset=0, limit=ALL_SECTION_NUMBER):
     response = requests.get('https://www.rbc.ru/story/filter/ajax?offset={}&limit={}'.format(offset, limit),
                             allow_redirects=False)
     return json.loads(response.text)
@@ -21,14 +20,6 @@ def get_section_tags(json_response):
     html = json_response['html']
     soup = BeautifulSoup(html, 'html.parser')
     return soup.find_all('div', class_='item item_story js-story-item')
-
-
-def get_name_from_tag(tag):
-    return normalize(UNICODE_NORMAL_FORM, tag.find('span', class_='item__title').get_text())
-
-
-def get_url_from_tag(tag):
-    return normalize(UNICODE_NORMAL_FORM, tag.find('a').get('href'))
 
 
 def get_description_from_tag(tag):
@@ -42,11 +33,11 @@ def get_section_model_instance(tag):
             }
 
 
-def update_relevant_sections(number=RELEVANT_SECTION_NUMBER):
+def update_relevant_sections(number):
 
-    if number > RELEVANT_SECTION_NUMBER:
+    if number > ALL_SECTION_NUMBER:
         raise Exception('Too many sections to update (note: maximum is {})'.
-                        format(RELEVANT_SECTION_NUMBER))
+                        format(ALL_SECTION_NUMBER))
 
     json_response = get_sections_json(0, number)
     instances = list(map(get_section_model_instance, get_section_tags(json_response)))

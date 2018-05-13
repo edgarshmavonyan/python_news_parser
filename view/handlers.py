@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from database.models import *
+from html_parser.update_db import update_decorator
 
 
 def make_href(href, text):
@@ -15,9 +16,21 @@ class Handler:
 
 class NewDocsHandler(Handler):
     @classmethod
+    @update_decorator
     def handle(cls, bot, update, args):
-        # updater
-        number = int(args[0])
+
+        if len(args) != 1:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text='Type exactly one number')
+            return
+
+        try:
+            number = int(args[0])
+        except ValueError:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text='Type integer, please')
+            return
+
         news_db.connect()
 
         query = Article.select(Article.section, Article.title, Article.url).\
@@ -32,9 +45,9 @@ class NewDocsHandler(Handler):
         news_db.close()
 
         if len(docs) == 0:
-            bot.send_message(chat_id=update.message.chat_id
-                             , text='Нет доступных документов'
-                             , parse_mode='HTML')
+            bot.send_message(chat_id=update.message.chat_id,
+                             text='Нет доступных документов',
+                             parse_mode='HTML')
         else:
             bot.send_message(chat_id=update.message.chat_id,
                              text='\n'.join(docs),
@@ -43,10 +56,21 @@ class NewDocsHandler(Handler):
 
 class NewTopicsHandler(Handler):
     @classmethod
+    @update_decorator
     def handle(cls, bot, update, args):
         # updater
         # try except
-        number = int(args[0])
+        if len(args) != 1:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text='Type exactly one number')
+            return
+
+        try:
+            number = int(args[0])
+        except ValueError:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text='Type integer, please')
+            return
 
         news_db.connect()
 
@@ -71,6 +95,7 @@ class NewTopicsHandler(Handler):
 
 class DocHandler(Handler):
     @classmethod
+    @update_decorator
     def handle(cls, bot, update, args):
         doc_title = ' '.join(args)
         try:
@@ -87,6 +112,7 @@ class TopicHandler(Handler):
     DOC_PREVIEW_NUMBER = 5
 
     @classmethod
+    @update_decorator
     def handle(cls, bot, update, args):
         topic_name = ' '.join(args)
         try:
@@ -106,3 +132,21 @@ class TopicHandler(Handler):
         except Section.DoesNotExist:
             bot.send_message(chat_id=update.message.chat_id,
                              text='Тема с таким названием не найдена')
+
+
+class DescribeDocHandler(Handler):
+    @classmethod
+    @update_decorator
+    def handle(cls, bot, update, args):
+        doc_title = ' '.join(args)
+        try:
+            article = Article.get(title=doc_title)
+
+            
+
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="Длина документа: {}".format(len(str(article.text))))
+
+        except Article.DoesNotExist:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text='Документ с таким названием не найден')

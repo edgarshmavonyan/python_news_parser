@@ -35,6 +35,9 @@ def add_news_dicts(instances, to_close=True):
             tags = instance.pop('tags')
             article = Article.get_or_create(**instance)[0]
             article.tags.add(tags, clear_existing=True)
+
+            article.section.last_update = max(article.last_update, article.section.last_update)
+            article.section.save()
     if to_close:
         news_db.close()
 

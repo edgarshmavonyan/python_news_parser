@@ -1,12 +1,14 @@
-import requests
 from bs4 import BeautifulSoup
-from .parse_sections import get_name_from_tag, get_url_from_tag, UNICODE_NORMAL_FORM
+from .common_getters import get_name_from_tag, get_url_from_tag, UNICODE_NORMAL_FORM
 from .parse_datetime import str_to_datetime
-import json
+from .reconnect import reconnect_decorator
 from unicodedata import normalize
 from database.models import *
 from database.controller import add_news_dicts, get_or_create_tags
-from .decorators import reconnect_decorator
+from collections import Counter
+import re
+import json
+import requests
 
 
 RELEVANT_NEWS_NUMBER = 100
@@ -61,21 +63,55 @@ def get_related_tags(soup):
     return list(map(get_tag_info, related_tags))
 
 
+def filter_text(text):
+    return list(filter(None, re.split('\W+|[0-9]+', text.lower())))
+
+
+def get_length_distribution(text, filtered=True):
+    if not filtered:
+        text = filter_text(text)
+    return dict(Counter(map(len, text)))
+
+
+def get_words_distribution(text, filtered=True):
+    if not filtered:
+        text = filter_text(text)
+    return dict(Counter(text))
+
+
 def get_news_model_instance(tag, section_url):
     title = get_name_from_tag(tag)
     url = get_url_from_tag(tag)
+    date = get_date_from_tag(tag)
+
+    try:
+        Article.get(title=title, url=url, last_update=date)
+    except Article.DoesNotExist:
+        pass
+    else:
+        return None
+
     soup = get_news_soup(url)
     text = get_news_content(soup)
+
     if text is None:
         return None
+
+    filtered_text = filter_text(text)
+    words_distribution = get_words_distribution(filtered_text)
+    length_distribution = get_length_distribution(filtered_text)
+    print(length_distribution)
     tags = get_or_create_tags(get_related_tags(soup))
 
     return {'title': title,
             'url': url,
             'section': Section.get(url=section_url),
-            'last_update': get_date_from_tag(tag),
+            'last_update': date,
             'text': text,
-            'tags': tags}
+            'tags': tags,
+            'length_distribution': json.dumps(length_distribution),
+            'words_distribution': json.dumps(words_distribution)
+            }
 
 
 def update_relevant_section_news(section_url, number=RELEVANT_NEWS_NUMBER):
@@ -89,5 +125,6 @@ def update_relevant_section_news(section_url, number=RELEVANT_NEWS_NUMBER):
     tags = get_news_tags(json_response)
 
     instances = list(filter(None, map(lambda tag: get_news_model_instance(tag, section_url), tags)))
+    print(len(instances))
     add_news_dicts(instances)
     print('added')
