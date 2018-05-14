@@ -268,9 +268,20 @@ class HelpHandler(Handler):
     @classmethod
     def handle(cls, bot, update):
         bot.send_message(chat_id=update.message.chat_id,
-                         text='\n'.join(map(lambda x: x.help(),
-                                            list(Handler.__subclasses__()))))
+                         text='\n'.join(filter(None, map(lambda x: x.help(),
+                                                         list(Handler.__subclasses__())))))
 
     @classmethod
     def help(cls):
         return '/help ; Вывести это сообщение'
+
+
+class UnknownHandler(Handler):
+    @classmethod
+    def handle(cls, bot, update, args):
+        bot.send_message(chat_id=update.message.chat_id,
+                         text='Простите, я не понял, что вы имеете в виду')
+
+    @classmethod
+    def help(cls):
+        return None

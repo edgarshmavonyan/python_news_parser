@@ -1,5 +1,5 @@
 import view.handlers as hnd
-from telegram.ext import CommandHandler, Updater
+from telegram.ext import CommandHandler, Updater, MessageHandler, Filters
 from database.update_db import update_db, UPDATE_SECTION_NUMBER
 from database.controller import init_db
 from database.models import news_db
@@ -50,6 +50,22 @@ def create_handlers(updater):
                                    pass_args=True)
 
     dispatcher.add_handler(words_handler)
+
+    help_handler = CommandHandler('help',
+                                  hnd.HelpHandler.handle,
+                                  pass_args=False)
+
+    dispatcher.add_handler(help_handler)
+
+    unknown_handler = MessageHandler(Filters.command,
+                                     hnd.UnknownHandler.handle)
+
+    dispatcher.add_handler(unknown_handler)
+
+    unknown_msg_handler = MessageHandler(Filters.text,
+                                         hnd.UnknownHandler.handle)
+
+    dispatcher.add_handler(unknown_msg_handler)
 
 
 # request_kwargs={'proxy_url': 'socks5://138.68.98.172:1080/'}
