@@ -1,9 +1,9 @@
 from abc import abstractmethod
 from database.models import *
-from html_parser.update_db import update_decorator
-from .graphs import save_length_distribution, save_words_distribution, send_graph
+from database.update_db import update_decorator
+from .graphs import manage_graphs
 from collections import Counter
-import os
+import operator
 import json
 
 
@@ -149,19 +149,9 @@ class DescribeDocHandler(Handler):
             bot.send_message(chat_id=update.message.chat_id,
                              text="Длина документа: {}".format(len(str(article.text))))
 
-            save_length_distribution(json.loads(article.length_distribution),
-                                     DescribeDocHandler.DEFAULT_FILENAME)
-
-            send_graph(bot, update, DescribeDocHandler.DEFAULT_FILENAME)
-
-            os.remove(DescribeDocHandler.DEFAULT_FILENAME)
-
-            save_words_distribution(json.loads(article.words_distribution),
-                                    DescribeDocHandler.DEFAULT_FILENAME)
-
-            send_graph(bot, update, DescribeDocHandler.DEFAULT_FILENAME)
-
-            os.remove(DescribeDocHandler.DEFAULT_FILENAME)
+            manage_graphs(bot, update, DescribeDocHandler.DEFAULT_FILENAME,
+                          json.loads(article.length_distribution),
+                          json.loads(article.words_distribution))
 
         except Article.DoesNotExist:
             bot.send_message(chat_id=update.message.chat_id,
@@ -189,30 +179,44 @@ class DescribeTopicHandler(Handler):
                              text='Количество документов в теме: ' + str(document_number))
 
             length_sum = 0
-            res_counter = Counter()
+            word_counter = Counter()
             len_counter = Counter()
 
             for article in section.articles:
                 length_sum += len(str(article.text))
-                res_counter += json.loads(article.words_distribution)
+                word_counter += json.loads(article.words_distribution)
                 len_counter += json.loads(article.length_distribution)
 
             bot.send_message(chat_id=update.message.chat_id,
                              text='Средняя длина документов: ' + str(length_sum/document_number))
 
-            save_length_distribution(len_counter,
-                                     DescribeTopicHandler.DEFAULT_FILENAME)
+            manage_graphs(bot, update, DescribeTopicHandler.DEFAULT_FILENAME,
+                          len_counter, word_counter, True)
 
-            send_graph(bot, update, DescribeTopicHandler.DEFAULT_FILENAME)
+        except Section.DoesNotExist:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text='Тема с таким названием не найдена')
 
-            os.remove(DescribeTopicHandler.DEFAULT_FILENAME)
 
-            save_words_distribution(res_counter,
-                                    DescribeTopicHandler.DEFAULT_FILENAME, True)
+class WordsHandler(Handler):
+    @classmethod
+    @update_decorator
+    def examine(cls, bot, update, args):
+        topic_name = ' '.join(args)
+        try:
+            section = Section.get(name=topic_name)
 
-            send_graph(bot, update, DescribeTopicHandler.DEFAULT_FILENAME)
+            word_counter = Counter()
 
-            os.remove(DescribeTopicHandler.DEFAULT_FILENAME)
+            for article in section.articles:
+                word_counter += json.loads(article.words_distribution)
+
+            words = sorted(word_counter.items(), key=operator.itemgetter(1))[-5:]
+
+            message = ', '.join(map(operator.itemgetter(0), words)) + '\n'
+
+            bot.send_message(chat_id=update.message.chat_id,
+                             text='Самые популярные слова темы: ' + message)
 
         except Section.DoesNotExist:
             bot.send_message(chat_id=update.message.chat_id,

@@ -1,6 +1,6 @@
 import view.handlers as hnd
 from telegram.ext import CommandHandler, Updater
-from html_parser.update_db import update_db, UPDATE_SECTION_NUMBER
+from database.update_db import update_db, UPDATE_SECTION_NUMBER
 from database.controller import init_db
 from database.models import news_db
 import logging
@@ -45,6 +45,12 @@ def create_handlers(updater):
 
     dispatcher.add_handler(describe_topic_handler)
 
+    words_handler = CommandHandler('words',
+                                   hnd.WordsHandler.handle,
+                                   pass_args=True)
+
+    dispatcher.add_handler(words_handler)
+
 
 # request_kwargs={'proxy_url': 'socks5://138.68.98.172:1080/'}
 def main():
@@ -60,7 +66,7 @@ def main():
 
     updater.start_polling()
 
-    print('Started')
+    print('Started polling')
     print('Type "stop" to stop bot')
 
     while True:

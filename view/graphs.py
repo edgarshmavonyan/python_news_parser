@@ -2,6 +2,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import operator
+import os
 
 
 def save_length_distribution(distribution, filename):
@@ -29,3 +30,19 @@ def save_words_distribution(distribution, filename, logarithmic=False):
 def send_graph(bot, update, filename):
     with open(filename, 'rb') as photo:
         bot.send_photo(chat_id=update.message.chat_id, photo=photo)
+
+
+def manage_graphs(bot, update, filename,
+                  length_distribution, words_distribution, logarithmic=False):
+
+    save_length_distribution(length_distribution, filename)
+
+    send_graph(bot, update, filename)
+
+    os.remove(filename)
+
+    save_words_distribution(words_distribution, filename, logarithmic)
+
+    send_graph(bot, update, filename)
+
+    os.remove(filename)

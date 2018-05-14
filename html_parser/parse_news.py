@@ -124,6 +124,4 @@ def update_relevant_section_news(section_url, number=RELEVANT_NEWS_NUMBER):
     tags = get_news_tags(json_response)
 
     instances = list(filter(None, map(lambda tag: get_news_model_instance(tag, section_url), tags)))
-    print(len(instances))
     add_news_dicts(instances)
-    print('added')
