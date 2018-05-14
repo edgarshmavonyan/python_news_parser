@@ -39,6 +39,12 @@ def create_handlers(updater):
 
     dispatcher.add_handler(describe_doc_handler)
 
+    describe_topic_handler = CommandHandler('describe_topic',
+                                            hnd.DescribeTopicHandler.handle,
+                                            pass_args=True)
+
+    dispatcher.add_handler(describe_topic_handler)
+
 
 # request_kwargs={'proxy_url': 'socks5://138.68.98.172:1080/'}
 def main():
