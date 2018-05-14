@@ -1,10 +1,10 @@
-# import matplotlib
-# matplotlib.use("Agg")
-# import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 import operator
 import os
 
-plt = dict()
+
 def save_length_distribution(distribution, filename):
     distribution = dict(sorted(list(map(lambda x: (int(x[0]), x[1]), distribution.items()))))
     plt.plot(distribution.keys(), distribution.values(), color='green')
