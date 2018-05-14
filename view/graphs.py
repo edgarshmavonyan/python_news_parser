@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import operator
 
 
-def save_length_ditribution(distribution, filename):
+def save_length_distribution(distribution, filename):
     distribution = dict(sorted(list(map(lambda x: (int(x[0]), x[1]), distribution.items()))))
     plt.plot(distribution.keys(), distribution.values(), color='green')
     plt.ylabel('Количество слов данной длины')

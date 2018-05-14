@@ -1,7 +1,8 @@
 from abc import abstractmethod
 from database.models import *
 from html_parser.update_db import update_decorator
-from .graphs import save_length_ditribution, save_words_distribution, send_graph
+from .graphs import save_length_distribution, save_words_distribution, send_graph
+from collections import Counter
 import os
 import json
 
@@ -148,8 +149,8 @@ class DescribeDocHandler(Handler):
             bot.send_message(chat_id=update.message.chat_id,
                              text="Длина документа: {}".format(len(str(article.text))))
 
-            save_length_ditribution(json.loads(article.length_distribution),
-                                    DescribeDocHandler.DEFAULT_FILENAME)
+            save_length_distribution(json.loads(article.length_distribution),
+                                     DescribeDocHandler.DEFAULT_FILENAME)
 
             send_graph(bot, update, DescribeDocHandler.DEFAULT_FILENAME)
 
@@ -165,3 +166,54 @@ class DescribeDocHandler(Handler):
         except Article.DoesNotExist:
             bot.send_message(chat_id=update.message.chat_id,
                              text='Документ с таким названием не найден')
+
+
+class DescribeTopicHandler(Handler):
+    DEFAULT_FILENAME = 'graph.png'
+
+    @classmethod
+    @update_decorator
+    def handle(cls, bot, update, args):
+        topic_name = ' '.join(args)
+        news_db.connect(reuse_if_open=True)
+        try:
+            section = Section.get(name=topic_name)
+            document_number = int(section.articles.count())
+
+            if document_number == 0:
+                bot.send_message(chat_id=update.message.chat_id,
+                                 text='Нету документов в теме')
+                return
+
+            bot.send_message(chat_id=update.message.chat_id,
+                             text='Количество документов в теме: ' + str(document_number))
+
+            length_sum = 0
+            res_counter = Counter()
+            len_counter = Counter()
+
+            for article in section.articles:
+                length_sum += len(str(article.text))
+                res_counter += json.loads(article.words_distribution)
+                len_counter += json.loads(article.length_distribution)
+
+            bot.send_message(chat_id=update.message.chat_id,
+                             text='Средняя длина документов: ' + str(length_sum/document_number))
+
+            save_length_distribution(len_counter,
+                                     DescribeTopicHandler.DEFAULT_FILENAME)
+
+            send_graph(bot, update, DescribeTopicHandler.DEFAULT_FILENAME)
+
+            os.remove(DescribeTopicHandler.DEFAULT_FILENAME)
+
+            save_words_distribution(res_counter,
+                                    DescribeTopicHandler.DEFAULT_FILENAME, True)
+
+            send_graph(bot, update, DescribeTopicHandler.DEFAULT_FILENAME)
+
+            os.remove(DescribeTopicHandler.DEFAULT_FILENAME)
+
+        except Section.DoesNotExist:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text='Тема с таким названием не найдена')
