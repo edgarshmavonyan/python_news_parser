@@ -16,6 +16,10 @@ class Handler:
     @abstractmethod
     def handle(cls, bot, update, args):
         pass
+    @classmethod
+    @abstractmethod
+    def help(cls):
+        pass
 
 
 class NewDocsHandler(Handler):
@@ -37,14 +41,16 @@ class NewDocsHandler(Handler):
 
         news_db.connect(reuse_if_open=True)
 
-        query = Article.select(Article.section, Article.title, Article.url).\
+        query = Article.select(Article.section, Article.title,
+                               Article.url).\
             order_by(Article.last_update.desc()).limit(number)
 
         docs = list()
 
         for article in query:
             docs.append(make_href(article.url,
-                                  article.section.name + ': ' + article.title))
+                                  article.section.name +
+                                  ': ' + article.title))
 
         if len(docs) == 0:
             bot.send_message(chat_id=update.message.chat_id,
@@ -54,6 +60,10 @@ class NewDocsHandler(Handler):
             bot.send_message(chat_id=update.message.chat_id,
                              text='\n'.join(docs),
                              parse_mode='HTML')
+
+    @classmethod
+    def help(cls):
+        return '/new_docs <N> ; Вывести <N> самых свежих новостей'
 
 
 class NewTopicsHandler(Handler):
@@ -91,6 +101,10 @@ class NewTopicsHandler(Handler):
                              text='\n'.join(sections),
                              parse_mode='HTML')
 
+    @classmethod
+    def help(cls):
+        return '/new_topics <N> ; Вывести <N> самых свежих тем'
+
 
 class DocHandler(Handler):
     @classmethod
@@ -106,6 +120,11 @@ class DocHandler(Handler):
         except Article.DoesNotExist:
             bot.send_message(chat_id=update.message.chat_id,
                              text='Документ с таким названием не найден')
+
+    @classmethod
+    def help(cls):
+        return '/doc <doc_title> ; Вывести содержимое документа с ' \
+               'названием <doc_title>'
 
 
 class TopicHandler(Handler):
@@ -134,6 +153,12 @@ class TopicHandler(Handler):
             bot.send_message(chat_id=update.message.chat_id,
                              text='Тема с таким названием не найдена')
 
+    @classmethod
+    def help(cls):
+        return '/topic <topic_name> ; Вывести описание темы ' \
+               '<topic_name> и {} самых свежих новостей оттуда'\
+            .format(TopicHandler.DOC_PREVIEW_NUMBER)
+
 
 class DescribeDocHandler(Handler):
     DEFAULT_FILENAME = 'graph.png'
@@ -156,6 +181,11 @@ class DescribeDocHandler(Handler):
         except Article.DoesNotExist:
             bot.send_message(chat_id=update.message.chat_id,
                              text='Документ с таким названием не найден')
+
+    @classmethod
+    def help(cls):
+        return '/describe_doc <doc_title> ; Вывести длину документа ' \
+               '<doc_title>, распределение частот и длин слов в нем'
 
 
 class DescribeTopicHandler(Handler):
@@ -197,11 +227,17 @@ class DescribeTopicHandler(Handler):
             bot.send_message(chat_id=update.message.chat_id,
                              text='Тема с таким названием не найдена')
 
+    @classmethod
+    def help(cls):
+        return '/describe_topic <topic_name> ; Вывести кол-во документов '\
+               'в теме <topic_name>, среднюю длину документов, распределение'\
+               ' частот и длин слов в рамках всей темы'
+
 
 class WordsHandler(Handler):
     @classmethod
     @update_decorator
-    def examine(cls, bot, update, args):
+    def handle(cls, bot, update, args):
         topic_name = ' '.join(args)
         try:
             section = Section.get(name=topic_name)
@@ -221,3 +257,20 @@ class WordsHandler(Handler):
         except Section.DoesNotExist:
             bot.send_message(chat_id=update.message.chat_id,
                              text='Тема с таким названием не найдена')
+
+    @classmethod
+    def help(cls):
+        return '/words <topic_name> ; Вывести 5 слов, '\
+               'лучше всего описывающих тему'
+
+
+class HelpHandler(Handler):
+    @classmethod
+    def handle(cls, bot, update):
+        bot.send_message(chat_id=update.message.chat_id,
+                         text='\n'.join(map(lambda x: x.help(),
+                                            list(Handler.__subclasses__()))))
+
+    @classmethod
+    def help(cls):
+        return '/help ; Вывести это сообщение'
