@@ -3,6 +3,7 @@ from database.models import *
 from html_parser.update_db import update_decorator
 from .graphs import save_length_ditribution, save_words_distribution, send_graph
 import os
+import json
 
 
 def make_href(href, text):
@@ -147,13 +148,19 @@ class DescribeDocHandler(Handler):
             bot.send_message(chat_id=update.message.chat_id,
                              text="Длина документа: {}".format(len(str(article.text))))
 
-            save_length_ditribution(article.length_distribution, DescribeDocHandler.DEFAULT_FILENAME)
+            save_length_ditribution(json.loads(article.length_distribution),
+                                    DescribeDocHandler.DEFAULT_FILENAME)
+
             send_graph(bot, update, DescribeDocHandler.DEFAULT_FILENAME)
 
             os.remove(DescribeDocHandler.DEFAULT_FILENAME)
 
-            save_words_distribution(article.words_distribution, DescribeDocHandler.DEFAULT_FILENAME)
+            save_words_distribution(json.loads(article.words_distribution),
+                                    DescribeDocHandler.DEFAULT_FILENAME)
+
             send_graph(bot, update, DescribeDocHandler.DEFAULT_FILENAME)
+
+            os.remove(DescribeDocHandler.DEFAULT_FILENAME)
 
         except Article.DoesNotExist:
             bot.send_message(chat_id=update.message.chat_id,
