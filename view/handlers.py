@@ -278,7 +278,7 @@ class HelpHandler(Handler):
 
 class UnknownHandler(Handler):
     @classmethod
-    def handle(cls, bot, update, args):
+    def handle(cls, bot, update, args=None):
         bot.send_message(chat_id=update.message.chat_id,
                          text='Простите, я не понял, что вы имеете в виду')
 
