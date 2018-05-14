@@ -10,6 +10,7 @@ def save_length_ditribution(distribution, filename):
     plt.ylabel('Количество слов данной длины')
     plt.xlabel('Длина слова')
     plt.savefig(filename)
+    plt.clf()
 
 
 def save_words_distribution(distribution, filename, logarithmic=False):
@@ -22,6 +23,7 @@ def save_words_distribution(distribution, filename, logarithmic=False):
     plt.ylabel('Количество появлений слова')
     plt.xlabel('Слова')
     plt.savefig(filename)
+    plt.clf()
 
 
 def send_graph(bot, update, filename):
