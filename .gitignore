@@ -6,3 +6,5 @@ venv/
 __pycache__/
 news_db.db
 news_db2.db
+news_db3.db
+myenv/

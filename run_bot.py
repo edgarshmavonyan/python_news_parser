@@ -1,7 +1,8 @@
-from view.handlers import *
+import view.handlers as hnd
 from telegram.ext import CommandHandler, Updater
 from html_parser.update_db import update_db, UPDATE_SECTION_NUMBER
 from database.controller import init_db
+from database.models import news_db
 import logging
 
 
@@ -9,28 +10,34 @@ def create_handlers(updater):
     dispatcher = updater.dispatcher
 
     new_docs_handler = CommandHandler('new_docs',
-                                      NewDocsHandler.handle,
+                                      hnd.NewDocsHandler.handle,
                                       pass_args=True)
 
     dispatcher.add_handler(new_docs_handler)
 
     new_topics_handler = CommandHandler('new_topics',
-                                        NewTopicsHandler.handle,
+                                        hnd.NewTopicsHandler.handle,
                                         pass_args=True)
 
     dispatcher.add_handler(new_topics_handler)
 
     topic_handler = CommandHandler('topic',
-                                   TopicHandler.handle,
+                                   hnd.TopicHandler.handle,
                                    pass_args=True)
 
     dispatcher.add_handler(topic_handler)
 
     doc_handler = CommandHandler('doc',
-                                 DocHandler.handle,
+                                 hnd.DocHandler.handle,
                                  pass_args=True)
 
     dispatcher.add_handler(doc_handler)
+
+    describe_doc_handler = CommandHandler('describe_doc',
+                                          hnd.DescribeDocHandler.handle,
+                                          pass_args=True)
+
+    dispatcher.add_handler(describe_doc_handler)
 
 
 # request_kwargs={'proxy_url': 'socks5://138.68.98.172:1080/'}

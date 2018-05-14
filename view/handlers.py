@@ -1,6 +1,8 @@
 from abc import abstractmethod
 from database.models import *
 from html_parser.update_db import update_decorator
+from .graphs import save_length_ditribution, save_words_distribution, send_graph
+import os
 
 
 def make_href(href, text):
@@ -132,6 +134,8 @@ class TopicHandler(Handler):
 
 
 class DescribeDocHandler(Handler):
+    DEFAULT_FILENAME = 'graph.png'
+
     @classmethod
     @update_decorator
     def handle(cls, bot, update, args):
@@ -140,10 +144,16 @@ class DescribeDocHandler(Handler):
         try:
             article = Article.get(title=doc_title)
 
-            
-
             bot.send_message(chat_id=update.message.chat_id,
                              text="Длина документа: {}".format(len(str(article.text))))
+
+            save_length_ditribution(article.length_distribution, DescribeDocHandler.DEFAULT_FILENAME)
+            send_graph(bot, update, DescribeDocHandler.DEFAULT_FILENAME)
+
+            os.remove(DescribeDocHandler.DEFAULT_FILENAME)
+
+            save_words_distribution(article.words_distribution, DescribeDocHandler.DEFAULT_FILENAME)
+            send_graph(bot, update, DescribeDocHandler.DEFAULT_FILENAME)
 
         except Article.DoesNotExist:
             bot.send_message(chat_id=update.message.chat_id,
