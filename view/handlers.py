@@ -31,7 +31,7 @@ class NewDocsHandler(Handler):
                              text='Type integer, please')
             return
 
-        news_db.connect()
+        news_db.connect(reuse_if_open=True)
 
         query = Article.select(Article.section, Article.title, Article.url).\
             order_by(Article.last_update.desc()).limit(number)
@@ -41,8 +41,6 @@ class NewDocsHandler(Handler):
         for article in query:
             docs.append(make_href(article.url,
                                   article.section.name + ': ' + article.title))
-
-        news_db.close()
 
         if len(docs) == 0:
             bot.send_message(chat_id=update.message.chat_id,
@@ -58,7 +56,6 @@ class NewTopicsHandler(Handler):
     @classmethod
     @update_decorator
     def handle(cls, bot, update, args):
-        # updater
         # try except
         if len(args) != 1:
             bot.send_message(chat_id=update.message.chat_id,
@@ -72,7 +69,7 @@ class NewTopicsHandler(Handler):
                              text='Type integer, please')
             return
 
-        news_db.connect()
+        news_db.connect(reuse_if_open=True)
 
         query = Section.select(Section.name, Section.url).\
             order_by(Section.last_update.desc()).limit(number)
@@ -81,8 +78,6 @@ class NewTopicsHandler(Handler):
 
         for section in query:
             sections.append(make_href(section.url, section.name))
-
-        news_db.close()
 
         if len(sections) == 0:
             bot.send_message(chat_id=update.message.chat_id,
@@ -98,6 +93,7 @@ class DocHandler(Handler):
     @update_decorator
     def handle(cls, bot, update, args):
         doc_title = ' '.join(args)
+        news_db.connect(reuse_if_open=True)
         try:
             article = Article.get(title=doc_title)
             bot.send_message(chat_id=update.message.chat_id,
@@ -115,19 +111,20 @@ class TopicHandler(Handler):
     @update_decorator
     def handle(cls, bot, update, args):
         topic_name = ' '.join(args)
+        news_db.connect(reuse_if_open=True)
         try:
-            section = Section.select(Section.name,
-                                     Section.description).get(name=topic_name)
+            section = Section.get(name=topic_name)
 
             recent_news = map(lambda x: make_href(x.url, x.title),
-                              Article.select(Article.title, Article.url).
-                              where(Article.section == section).
+                              section.articles.select(Article.title, Article.url).
+                              order_by(Article.last_update.desc()).
                               limit(TopicHandler.DOC_PREVIEW_NUMBER))
 
             message = section.description + '\n' + '\n'.join(recent_news)
 
             bot.send_message(chat_id=update.message.chat_id,
-                             text=message)
+                             text=message,
+                             parse_mode='HTML')
 
         except Section.DoesNotExist:
             bot.send_message(chat_id=update.message.chat_id,
@@ -139,6 +136,7 @@ class DescribeDocHandler(Handler):
     @update_decorator
     def handle(cls, bot, update, args):
         doc_title = ' '.join(args)
+        news_db.connect(reuse_if_open=True)
         try:
             article = Article.get(title=doc_title)
 
