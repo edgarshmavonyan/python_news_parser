@@ -9,7 +9,8 @@ import logging
 def create_handlers(updater):
     dispatcher = updater.dispatcher
     handlers = list()
-
+    handlers.append(CommandHandler('start',
+                                   hnd.StartHandler.handle))
     handlers.append(CommandHandler('new_docs',
                                    hnd.NewDocsHandler.handle,
                                    pass_args=True))

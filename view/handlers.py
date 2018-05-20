@@ -36,6 +36,15 @@ class Handler:
         pass
 
 
+class StartHandler(Handler):
+    """Handles /start query"""
+    @classmethod
+    def handle(cls, bot, update):
+        bot.send_message(chat_id=update.message.chat_id,
+                         text='Это бот для сбора статистики, '
+                              'наберите /help для ознакомления с командами')
+
+
 class NewDocsHandler(Handler):
     """Handles /new_docs query"""
     DEFAULT_NEW_DOCS = 5
