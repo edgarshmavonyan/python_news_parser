@@ -40,7 +40,7 @@ def create_handlers(updater):
     handlers.append(MessageHandler(Filters.text,
                                    hnd.UnknownHandler.handle))
 
-    [dispatcher.add(handler) for handler in handlers]
+    [dispatcher.add_handler(handler) for handler in handlers]
 
 
 # request_kwargs={'proxy_url': 'socks5://138.68.98.172:1080/'}

@@ -5,7 +5,7 @@ from functools import wraps
 from database.models import *
 from datetime import datetime, timedelta
 
-UPDATE_TIMEDELTA = timedelta(minutes=10)
+UPDATE_TIMEDELTA = timedelta(hours=1)
 UPDATE_SECTION_NUMBER = 15
 
 
