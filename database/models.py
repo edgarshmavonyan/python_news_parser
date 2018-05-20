@@ -8,11 +8,13 @@ DEFAULT_DATE = datetime.datetime(1970, 1, 1)
 
 
 class NewsModel(Model):
+    """Base model for this database"""
     class Meta:
         database = news_db
 
 
 class Section(NewsModel):
+    """Section model"""
     name = FixedCharField()
     url = CharField(max_length=STANDARD_MAX_URL_LENGTH)
     description = TextField()
@@ -23,6 +25,7 @@ class Section(NewsModel):
 
 
 class Tag(NewsModel):
+    """Related tag model"""
     name = FixedCharField(primary_key=True)
 
     def __repr__(self):
@@ -30,6 +33,7 @@ class Tag(NewsModel):
 
 
 class Article(NewsModel):
+    """Article model"""
     title = FixedCharField()
     section = ForeignKeyField(Section, backref='articles')
     url = CharField(max_length=STANDARD_MAX_URL_LENGTH)
@@ -40,4 +44,5 @@ class Article(NewsModel):
     words_distribution = TextField()
 
     def __repr__(self):
-        return str(self.section) + ': ' + self.title + '; ' + str(self.last_update)
+        return str(self.section) + ': ' + self.title + '; ' + \
+               str(self.last_update)

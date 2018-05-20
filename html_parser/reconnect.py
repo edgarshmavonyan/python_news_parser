@@ -4,6 +4,9 @@ RECONNECT_NUMBER = 10
 
 
 def reconnect_decorator(request_function):
+    """Make wrapped function reconnect several times not throwing exception
+    :param request_function: function to wrap
+    :return: decorated function"""
     @wraps(request_function)
     def func_wrapper(*args, **kwargs):
         counter = 0

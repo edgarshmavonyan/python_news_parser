@@ -8,6 +8,9 @@ month_num = [('янв', '01'), ('фев', '02'), ('мар', '03'),
 
 
 def str_to_datetime(date_time):
+    """Parses datetime in RBC format to python datetime
+    :param date_time: string datetime in RBC format
+    :return: parsed datetime object"""
     for old, new in month_num:
         date_time = date_time.replace(old, new)
 
@@ -19,5 +22,8 @@ def str_to_datetime(date_time):
         return result.replace(year=datetime.now().year)
     if len_date == 1:
         result = datetime.strptime(date_time, '%H:%M')
-        return result.replace(day=datetime.now().day, month=datetime.now().month, year=datetime.now().year)
-    raise TypeError('No available cast from "{}" to datetime object'.format(date_time))
+        return result.replace(day=datetime.now().day,
+                              month=datetime.now().month,
+                              year=datetime.now().year)
+    raise TypeError('No available cast from "{}" to datetime object'.
+                    format(date_time))

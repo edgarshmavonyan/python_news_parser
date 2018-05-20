@@ -75,7 +75,8 @@ def main():
 
     updater = Updater(token='585285364:AAFBx3Kotx7txqpBN03RXYHHm_e1ViGqNjY')
 
-    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    logging.basicConfig(format='%(asctime)s - %(name)s - '
+                               '%(levelname)s - %(message)s',
                         level=logging.INFO)
 
     create_handlers(updater)

@@ -7,37 +7,56 @@ import operator
 import json
 
 
-def make_href(href, text):
-    return '<a href="{}">{}</a>'.format(href, text)
+def make_href(href, text=None):
+    """Makes href html-tag
+    :param href: str reference
+    :param text: text for href"""
+    return '<a href="{}">{}</a>'.format(href, href if text is None else text)
 
 
 class Handler:
+    """Handler interface"""
     @classmethod
     @abstractmethod
     def handle(cls, bot, update, args):
+        """Main handler method
+        :param bot: telegram.Bot
+            Bot to work with
+        :param update:
+            Update to work with
+        :param args:
+            Arguments to handler"""
         pass
+
     @classmethod
     @abstractmethod
     def help(cls):
+        """Returns help for query
+        :return: help string"""
         pass
 
 
 class NewDocsHandler(Handler):
+    """Handles /new_docs query"""
+    DEFAULT_NEW_DOCS = 5
+
     @classmethod
     @update_decorator
     def handle(cls, bot, update, args):
 
-        if len(args) != 1:
+        if len(args) > 1:
             bot.send_message(chat_id=update.message.chat_id,
-                             text='Type exactly one number')
+                             text='Наберите не более, чем одно число')
             return
-
-        try:
-            number = int(args[0])
-        except ValueError:
-            bot.send_message(chat_id=update.message.chat_id,
-                             text='Type integer, please')
-            return
+        if len(args) == 1:
+            try:
+                number = int(args[0])
+            except ValueError:
+                bot.send_message(chat_id=update.message.chat_id,
+                                 text='Ожидалось целое число')
+                return
+        else:
+            number = NewDocsHandler.DEFAULT_NEW_DOCS
 
         news_db.connect(reuse_if_open=True)
 
@@ -67,21 +86,27 @@ class NewDocsHandler(Handler):
 
 
 class NewTopicsHandler(Handler):
+    """Handles /new_topics query"""
+    DEFAULT_NEW_TOPICS = 5
+
     @classmethod
     @update_decorator
     def handle(cls, bot, update, args):
         # try except
-        if len(args) != 1:
+        if len(args) > 1:
             bot.send_message(chat_id=update.message.chat_id,
-                             text='Type exactly one number')
+                             text='Наберите не более, чем одно число')
             return
 
-        try:
-            number = int(args[0])
-        except ValueError:
-            bot.send_message(chat_id=update.message.chat_id,
-                             text='Type integer, please')
-            return
+        if len(args) == 1:
+            try:
+                number = int(args[0])
+            except ValueError:
+                bot.send_message(chat_id=update.message.chat_id,
+                                 text='Ожидалось целое число')
+                return
+        else:
+            number = NewTopicsHandler.DEFAULT_NEW_TOPICS
 
         news_db.connect(reuse_if_open=True)
 
@@ -107,6 +132,7 @@ class NewTopicsHandler(Handler):
 
 
 class DocHandler(Handler):
+    """Handles /doc query"""
     @classmethod
     @update_decorator
     def handle(cls, bot, update, args):
@@ -128,6 +154,7 @@ class DocHandler(Handler):
 
 
 class TopicHandler(Handler):
+    """Handles /topic query"""
     DOC_PREVIEW_NUMBER = 5
 
     @classmethod
@@ -139,7 +166,8 @@ class TopicHandler(Handler):
             section = Section.get(name=topic_name)
 
             recent_news = map(lambda x: make_href(x.url, x.title),
-                              section.articles.select(Article.title, Article.url).
+                              section.articles.select(Article.title,
+                                                      Article.url).
                               order_by(Article.last_update.desc()).
                               limit(TopicHandler.DOC_PREVIEW_NUMBER))
 
@@ -161,6 +189,7 @@ class TopicHandler(Handler):
 
 
 class DescribeDocHandler(Handler):
+    """Handles """
     DEFAULT_FILENAME = 'graph.png'
 
     @classmethod
@@ -172,7 +201,8 @@ class DescribeDocHandler(Handler):
             article = Article.get(title=doc_title)
 
             bot.send_message(chat_id=update.message.chat_id,
-                             text="Длина документа: {}".format(len(str(article.text))))
+                             text="Длина документа: {}".
+                             format(len(str(article.text))))
 
             manage_graphs(bot, update, DescribeDocHandler.DEFAULT_FILENAME,
                           json.loads(article.length_distribution),
@@ -189,6 +219,7 @@ class DescribeDocHandler(Handler):
 
 
 class DescribeTopicHandler(Handler):
+    """Handles /describe topic"""
     DEFAULT_FILENAME = 'graph.png'
 
     @classmethod
@@ -206,7 +237,8 @@ class DescribeTopicHandler(Handler):
                 return
 
             bot.send_message(chat_id=update.message.chat_id,
-                             text='Количество документов в теме: ' + str(document_number))
+                             text='Количество документов в теме: ' +
+                                  str(document_number))
 
             length_sum = 0
             word_counter = Counter()
@@ -218,7 +250,8 @@ class DescribeTopicHandler(Handler):
                 len_counter += json.loads(article.length_distribution)
 
             bot.send_message(chat_id=update.message.chat_id,
-                             text='Средняя длина документов: ' + str(length_sum/document_number))
+                             text='Средняя длина документов: '
+                                  + str(length_sum/document_number))
 
             manage_graphs(bot, update, DescribeTopicHandler.DEFAULT_FILENAME,
                           len_counter, word_counter, True)
@@ -235,6 +268,7 @@ class DescribeTopicHandler(Handler):
 
 
 class WordsHandler(Handler):
+    """Handles /words query"""
     @classmethod
     @update_decorator
     def handle(cls, bot, update, args):
@@ -247,7 +281,8 @@ class WordsHandler(Handler):
             for article in section.articles:
                 word_counter += json.loads(article.words_distribution)
 
-            words = sorted(word_counter.items(), key=operator.itemgetter(1))[-5:]
+            words = sorted(word_counter.items(),
+                           key=operator.itemgetter(1))[-5:]
 
             message = ', '.join(map(operator.itemgetter(0), words)) + '\n'
 
@@ -265,11 +300,13 @@ class WordsHandler(Handler):
 
 
 class HelpHandler(Handler):
+    """Handles /help query"""
     @classmethod
     def handle(cls, bot, update):
+        """Prints help function from all sublcasses of handlers"""
+        mapped = map(lambda x: x.help(), list(Handler.__subclasses__()))
         bot.send_message(chat_id=update.message.chat_id,
-                         text='\n'.join(filter(None, map(lambda x: x.help(),
-                                                         list(Handler.__subclasses__())))))
+                         text='\n'.join(filter(None, mapped)))
 
     @classmethod
     def help(cls):
@@ -277,6 +314,7 @@ class HelpHandler(Handler):
 
 
 class UnknownHandler(Handler):
+    """Handles unknown queries"""
     @classmethod
     def handle(cls, bot, update, args=None):
         bot.send_message(chat_id=update.message.chat_id,
