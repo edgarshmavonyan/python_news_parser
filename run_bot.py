@@ -8,70 +8,44 @@ import logging
 
 def create_handlers(updater):
     dispatcher = updater.dispatcher
+    handlers = list()
 
-    new_docs_handler = CommandHandler('new_docs',
-                                      hnd.NewDocsHandler.handle,
-                                      pass_args=True)
-
-    dispatcher.add_handler(new_docs_handler)
-
-    new_topics_handler = CommandHandler('new_topics',
-                                        hnd.NewTopicsHandler.handle,
-                                        pass_args=True)
-
-    dispatcher.add_handler(new_topics_handler)
-
-    topic_handler = CommandHandler('topic',
+    handlers.append(CommandHandler('new_docs',
+                                   hnd.NewDocsHandler.handle,
+                                   pass_args=True))
+    handlers.append(CommandHandler('new_topics',
+                                   hnd.NewTopicsHandler.handle,
+                                   pass_args=True))
+    handlers.append(CommandHandler('topic',
                                    hnd.TopicHandler.handle,
-                                   pass_args=True)
-
-    dispatcher.add_handler(topic_handler)
-
-    doc_handler = CommandHandler('doc',
-                                 hnd.DocHandler.handle,
-                                 pass_args=True)
-
-    dispatcher.add_handler(doc_handler)
-
-    describe_doc_handler = CommandHandler('describe_doc',
-                                          hnd.DescribeDocHandler.handle,
-                                          pass_args=True)
-
-    dispatcher.add_handler(describe_doc_handler)
-
-    describe_topic_handler = CommandHandler('describe_topic',
-                                            hnd.DescribeTopicHandler.handle,
-                                            pass_args=True)
-
-    dispatcher.add_handler(describe_topic_handler)
-
-    words_handler = CommandHandler('words',
+                                   pass_args=True))
+    handlers.append(CommandHandler('doc',
+                                   hnd.DocHandler.handle,
+                                   pass_args=True))
+    handlers.append(CommandHandler('describe_doc',
+                                   hnd.DescribeDocHandler.handle,
+                                   pass_args=True))
+    handlers.append(CommandHandler('describe_topic',
+                                   hnd.DescribeTopicHandler.handle,
+                                   pass_args=True))
+    handlers.append(CommandHandler('words',
                                    hnd.WordsHandler.handle,
-                                   pass_args=True)
+                                   pass_args=True))
+    handlers.append(CommandHandler('help',
+                                   hnd.HelpHandler.handle,
+                                   pass_args=False))
+    handlers.append(MessageHandler(Filters.command,
+                                   hnd.UnknownHandler.handle))
+    handlers.append(MessageHandler(Filters.text,
+                                   hnd.UnknownHandler.handle))
 
-    dispatcher.add_handler(words_handler)
-
-    help_handler = CommandHandler('help',
-                                  hnd.HelpHandler.handle,
-                                  pass_args=False)
-
-    dispatcher.add_handler(help_handler)
-
-    unknown_handler = MessageHandler(Filters.command,
-                                     hnd.UnknownHandler.handle)
-
-    dispatcher.add_handler(unknown_handler)
-
-    unknown_msg_handler = MessageHandler(Filters.text,
-                                         hnd.UnknownHandler.handle)
-
-    dispatcher.add_handler(unknown_msg_handler)
+    [dispatcher.add(handler) for handler in handlers]
 
 
 # request_kwargs={'proxy_url': 'socks5://138.68.98.172:1080/'}
 def main():
     init_db()
-    update_db(UPDATE_SECTION_NUMBER)
+    update_db()
 
     updater = Updater(token='585285364:AAFBx3Kotx7txqpBN03RXYHHm_e1ViGqNjY')
 
