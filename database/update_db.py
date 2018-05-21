@@ -15,6 +15,7 @@ def update_db(number=ALL_SECTION_NUMBER):
         Number of latest sections to update"""
     sections = update_relevant_sections(number)
     news_db.connect(reuse_if_open=True)
+    print('updating db')
     for section in sections:
         update_relevant_section_news(section['url'])
         print('added')

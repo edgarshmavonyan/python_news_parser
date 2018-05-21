@@ -12,7 +12,7 @@ import json
 import requests
 
 
-RELEVANT_NEWS_NUMBER = 100
+RELEVANT_NEWS_NUMBER = 10
 
 
 def get_id_from_section_url(url):
