@@ -294,8 +294,8 @@ class WordsHandler(Handler):
             words_dict = Counter(json.loads(section.words_distribution))
             sum_words = Counter()
 
-            for section in Section.select():
-                sum_words += Counter(json.loads(section.words_distribution))
+            for sect in Section.select():
+                sum_words += Counter(json.loads(sect.words_distribution))
 
             words = [(word[0], get_tf(word, section)*get_idf(word, sum_words))
                      for word in words_dict]
