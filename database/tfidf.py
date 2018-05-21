@@ -1,5 +1,6 @@
 from database.models import *
 from collections import Counter
+from math import log
 import json
 
 
@@ -15,7 +16,7 @@ def get_idf(word, sum_words=None):
     if denom == 0:
         return INF
     else:
-        return len(list(Section.select())) / denom
+        return log(len(list(Section.select())) / denom)
 
 
 def get_sum_occur(word):

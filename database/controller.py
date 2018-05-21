@@ -46,6 +46,7 @@ def add_words(words, section):
     words_section = Counter(json.loads(section.words_distribution))
     words_section += Counter(words)
     section.words_distribution = json.dumps(words_section)
+    print(len(words_section))
     section.save()
 
 
