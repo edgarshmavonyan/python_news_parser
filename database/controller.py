@@ -68,6 +68,7 @@ def add_news_dicts(instances, to_close=False):
 
             words_section += Counter(words)
             article.section.words_distribution = json.dumps(words_section)
+            article.section.save()
 
         article.section.last_update = max(article.last_update,
                                           article.section.last_update)
