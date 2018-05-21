@@ -54,29 +54,23 @@ def add_news_dicts(instances, to_close=False):
     :param to_close: bool
         Whether to close connection (default=False)"""
     news_db.connect(reuse_if_open=True)
-    with news_db.atomic():
-        for instance in instances:
-            tags = instance.pop('tags')
-            article, is_new = Article.get_or_create(**instance)
-            article.tags.add(tags, clear_existing=True)
+    for instance in instances:
+        tags = instance.pop('tags')
+        article, is_new = Article.get_or_create(**instance)
+        article.tags.add(tags, clear_existing=True)
 
-            if is_new:
-                print('adding')
-                words_section = \
-                    Counter(json.loads(article.section.words_distribution))
-                words = json.loads(article.words_distribution)
-                words_section += Counter(words)
-                print(words_section)
-                article.section.words_distribution = json.dumps(words_section)
-                global cnter
-                cnter += 1
-                if cnter == 2:
-                    news_db.close()
-                    exit(0)
+        if is_new:
+            print('adding')
+            words_section = \
+                Counter(json.loads(article.section.words_distribution))
+            words = json.loads(article.words_distribution)
+            words_section += Counter(words)
+            print(words_section)
+            article.section.words_distribution = json.dumps(words_section)
 
-            article.section.last_update = max(article.last_update,
-                                              article.section.last_update)
-            article.section.save()
+        article.section.last_update = max(article.last_update,
+                                          article.section.last_update)
+        article.section.save()
     if to_close:
         news_db.close()
 
