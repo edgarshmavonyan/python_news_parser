@@ -46,7 +46,7 @@ def add_section_dicts(dicts, to_close=True):
 
     # print(len(words_section))
 
-cnter = 0
+
 def add_news_dicts(instances, to_close=False):
     """Add list of news to model
     :param instances: list
@@ -67,7 +67,7 @@ def add_news_dicts(instances, to_close=False):
             words = json.loads(article.words_distribution)
 
             words_section += Counter(words)
-            article.section.words_distribution = json.dumps(words_section)
+            article.section.words_distribution = json.dumps(dict(words_section))
             article.section.save()
 
         article.section.last_update = max(article.last_update,
