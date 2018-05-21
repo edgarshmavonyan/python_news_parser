@@ -17,6 +17,7 @@ def update_db(number=ALL_SECTION_NUMBER):
     news_db.connect(reuse_if_open=True)
     for section in sections:
         update_relevant_section_news(section['url'])
+        print('added')
     update_db.last_update = datetime.now()
 
 

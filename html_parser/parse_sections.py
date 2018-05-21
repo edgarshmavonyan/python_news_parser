@@ -7,7 +7,7 @@ from .common_getters import UNICODE_NORMAL_FORM
 import json
 import requests
 
-ALL_SECTION_NUMBER = 100
+ALL_SECTION_NUMBER = 10
 
 
 @reconnect_decorator
