@@ -58,14 +58,15 @@ def add_news_dicts(instances, to_close=False):
         tags = instance.pop('tags')
         article, is_new = Article.get_or_create(**instance)
         article.tags.add(tags, clear_existing=True)
-
         if is_new:
             print('adding')
             words_section = \
                 Counter(json.loads(article.section.words_distribution))
-            words = json.loads(article.words_distribution)
-            words_section += Counter(words)
             print(words_section)
+            b = input()
+            words = json.loads(article.words_distribution)
+
+            words_section += Counter(words)
             article.section.words_distribution = json.dumps(words_section)
 
         article.section.last_update = max(article.last_update,
