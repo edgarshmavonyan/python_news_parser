@@ -42,12 +42,9 @@ def add_section_dicts(dicts, to_close=True):
         news_db.close()
 
 
-def add_words(words, section):
-    words_section = Counter(json.loads(section.words_distribution))
-    words_section += Counter(words)
-    section.words_distribution = json.dumps(words_section)
-    print(len(words_section))
-    section.save()
+# def add_words(words, section):
+
+    # print(len(words_section))
 
 
 def add_news_dicts(instances, to_close=True):
@@ -64,7 +61,12 @@ def add_news_dicts(instances, to_close=True):
             article.tags.add(tags, clear_existing=True)
 
             if is_new:
-                add_words(json.loads(article.words_distribution), article.section)
+                words_section = \
+                    Counter(json.loads(article.section.words_distribution))
+                words = json.loads(article.words_distribution)
+                words_section += Counter(words)
+                article.section.words_distribution = json.dumps(words_section)
+
             article.section.last_update = max(article.last_update,
                                               article.section.last_update)
             article.section.save()
