@@ -46,7 +46,7 @@ def create_handlers(updater):
 # request_kwargs={'proxy_url': 'socks5://138.68.98.172:1080/'}
 def main():
     init_db()
-    update_db()
+    update_db(10)
 
     updater = Updater(token='585285364:AAFBx3Kotx7txqpBN03RXYHHm_e1ViGqNjY')
 

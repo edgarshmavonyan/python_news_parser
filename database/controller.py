@@ -1,4 +1,5 @@
 from .models import *
+import json
 
 
 def init_db():
@@ -22,7 +23,7 @@ def add_if_new(instance):
             description=instance['description']
         )
     except Section.DoesNotExist:
-        Section.create(**instance)
+        Section.create(**instance, words_distribution=json.dumps(dict()))
 
 
 def add_section_dicts(dicts, to_close=True):
@@ -41,6 +42,13 @@ def add_section_dicts(dicts, to_close=True):
         news_db.close()
 
 
+def add_words(words, section):
+    words_section = Counter(json.loads(section.words_distribution))
+    words_section += Counter(words)
+    section.words_distribution = json.dumps(words_section)
+    section.save()
+
+
 def add_news_dicts(instances, to_close=True):
     """Add list of news to model
     :param instances: list
@@ -51,9 +59,11 @@ def add_news_dicts(instances, to_close=True):
     with news_db.atomic():
         for instance in instances:
             tags = instance.pop('tags')
-            article = Article.get_or_create(**instance)[0]
+            article, is_new = Article.get_or_create(**instance)
             article.tags.add(tags, clear_existing=True)
 
+            if is_new:
+                add_words(json.loads(article.words_distribution), article.section)
             article.section.last_update = max(article.last_update,
                                               article.section.last_update)
             article.section.save()

@@ -1,4 +1,5 @@
 from peewee import *
+from collections import Counter
 import datetime
 
 
@@ -19,6 +20,7 @@ class Section(NewsModel):
     url = CharField(max_length=STANDARD_MAX_URL_LENGTH)
     description = TextField()
     last_update = DateTimeField(default=DEFAULT_DATE)
+    words_distribution = TextField()
 
     def __repr__(self):
         return self.name
